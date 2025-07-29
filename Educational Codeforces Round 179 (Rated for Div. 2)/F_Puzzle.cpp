@@ -49,61 +49,49 @@ void print(const T& a, const Ts&... b) {
 void print() { cout << '\n'; }
 
 void solve(){
-    ll p, s;
-    input(p, s);
+    int P, S;
+    input(P, S);
 
-    bool foundRect = false;
-    ll bestX = -1, bestY = -1;
-    for (ll x = 1; x * x <= 50000 && !foundRect; ++x) {
-        ll denom = p*x - 2*s;
-        if (denom <= 0) continue;
-        ll num = 2*s*x;
-        if (num % denom != 0) continue;
-        ll y = num / denom;
-        if (y <= 0) continue;
-        if (x*y > 50000) continue;
-        bestX = x;
-        bestY = y;
-        foundRect = true;
+    if (P == 2 * S) {
+        print(4);
+        print(0, 0);
+        print(0, 1);
+        print(1, 0);
+        print(1, 1);
+        return;
     }
 
-    if (foundRect) {
-        ll k = bestX * bestY;
-        print(k);
-        rep(i, bestX) rep(j, bestY) print(i, j);
-        return;
+    for (int x = 1; x * x <= 50000; ++x) {
+        for (int y = x; x * y <= 50000; ++y) {
+            int per = 2 * (x + y);
+            int area = x * y;
+            if (1LL * per * S == 1LL * P * area) {
+                print(area);
+                rep(i, x) rep(j, y) print(i, j);
+                return;
+            }
+            if (y > 1) {
+                ll d = 1LL * S * (per + 2) - 1LL * area * P;
+                if (d % P == 0) {
+                    d /= P;
+                    if (d >= 1 && d < y && area + d <= 50000) {
+                        print(area + d);
+                        rep(i, x) rep(j, y) print(i, j);
+                        rep(i, (int)d) print(x, i);
+                        return;
+                    }
+                }
+            }
+        }
     }
-    ll n = 2*s;
-    ll E = 4*s - p;
-    if (E < n-1 || E > 2*n) {
-        print(-1);
-        return;
-    }
-    ll K = E - (n-1);  
-    if (K < 0 || K > n) {
-        print(-1);
-        return;
-    }
-    ll total = n + K;
-    if (total > 50000) {
-        print(-1);
-        return;
-    }
-    print(total);
-    rep(i, n) {
-        print(i, 0);
-    }
-    rep(i, K) {
-        int y = (i % 2 == 0 ? 1 : -1);
-        print(i, y);
-    }
+    print(-1);
 }
 
 int main(){
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
 
-    int T = 1;
+    int T;
     input(T);
     while (T--) solve();
     return 0;
