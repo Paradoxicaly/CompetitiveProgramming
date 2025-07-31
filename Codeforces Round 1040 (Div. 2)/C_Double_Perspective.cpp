@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+using pii = pair<int,int>;
+using vi = vector<int>;
+#define pb push_back
+#define fi first
+#define se second
+#define all(x) begin(x), end(x)
+#define sz(x) ((int)(x).size())
+#define rep(i,n) for(int i=0;i<(n);++i)
+#define rng(i,a,b) for(int i=(a);i<(b);++i)
+
+const int MOD = 1e9+7;
+
+#ifdef Tomato
+template<typename T>
+ostream& operator<<(ostream& o, vector<T> vec){
+    o<<"{";int f=0;for(T i:vec)o<<(f++?" ":"")<<i;return o<<"}";
+}
+void bug__(int c, auto... a){
+    cerr<<"\e[1;"<<c<<"m";(...,(cerr<<a<<" "));cerr<<"\e[0m"<<endl;
+}
+#define bug_(c,x...)bug__(c,__LINE__,"["+string(#x)+"]",x)
+#define bug(x...)bug_(32,x)
+#else
+#define bug(x...)void(0)
+#endif
+
+template<class... T>
+constexpr auto min(T... a){
+    return std::min({a...});
+}
+template<class... T>
+constexpr auto max(T... a){
+    return std::max({a...});
+}
+template<class... T>
+void input(T&... a){
+    (cin>>...>>a);
+}
+template<class T, class... Ts>
+void print(const T& a, const Ts&... b){
+    cout<<a; (cout<<...<<(cout<<' ',b)); cout<<'\n';
+}
+void print(){ cout<<'\n'; }
+
+ll gcd(ll a, ll b){ return b?gcd(b,a%b):a; }
+ll power(ll a, ll b, ll mod=MOD){
+    ll res=1;
+    while(b>0){
+        if(b&1) res=res*a%mod;
+        a=a*a%mod;
+        b>>=1;
+    }
+    return res;
+}
+
+static const int MAXM = 6005;
+static int16_t dp[MAXM][MAXM];
+static vector<pair<int,int>> edgesLeft[MAXM];
+int n;
+
+void recover(int L, int R, vector<int>& ans){
+    if(L>R) return;
+    if(L+1<=R && dp[L][R]==dp[L+1][R]){
+        recover(L+1, R, ans);
+        return;
+    }
+    if(R-1>=L && dp[L][R]==dp[L][R-1]){
+        recover(L, R-1, ans);
+        return;
+    }
+    for(auto& pr: edgesLeft[L]){
+        int K = pr.first;
+        int idx = pr.second;
+        if(K<=R){
+            int16_t val = dp[K][R] + (K - L);
+            if(val==dp[L][R]){
+                ans.pb(idx);
+                recover(K, R, ans);
+                return;
+            }
+        }
+    }
+}
+
+void solve(){
+    input(n);
+    int M = 2*n;
+    for(int i=1;i<=M;i++) edgesLeft[i].clear();
+    for(int i=1;i<=n;i++){
+        int a,b;
+        input(a,b);
+        edgesLeft[a].pb({b,i});
+    }
+    for(int L=M;L>=1;L--){
+        for(int R=L;R<=M;R++){
+            int16_t best = 0;
+            if(L+1<=R) best = dp[L+1][R];
+            if(R-1>=L) best = max<int16_t>(best, dp[L][R-1]);
+            for(auto& pr: edgesLeft[L]){
+                int K = pr.first;
+                if(K<=R){
+                    int16_t cand = dp[K][R] + (K - L);
+                    if(cand>best) best = cand;
+                }
+            }
+            dp[L][R] = best;
+        }
+    }
+    vector<int> answer;
+    recover(1, M, answer);
+    cout<<answer.size()<<"\n";
+    if(!answer.empty()){
+        rep(i, answer.size()){
+            cout<<answer[i]<<(i+1==(int)answer.size()?'\n':' ');
+        }
+    } else {
+        cout<<"\n";
+    }
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int T=1;
+    input(T);
+    while(T--) solve();
+    return 0;
+}
