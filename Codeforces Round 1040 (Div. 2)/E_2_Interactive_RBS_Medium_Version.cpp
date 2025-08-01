@@ -1,5 +1,5 @@
 /*
-Tomato_Cultivator
+ Tomato_Cultivator
 */
 
 #include <bits/stdc++.h>
@@ -59,8 +59,8 @@ void print(const T& a, const Ts&... b){
 }
 void print() { cout << '\n'; }
 
-ll gcd(ll a, ll b) { 
-    return b ? gcd(b, a % b) : a; 
+ll gcd(ll a, ll b) {
+    return b ? gcd(b, a % b) : a;
 }
 
 ll power(ll a, ll b, ll mod = MOD) {
@@ -73,8 +73,7 @@ ll power(ll a, ll b, ll mod = MOD) {
     return res;
 }
 
-ll Q(const vi& idxs) {
-    if (idxs.empty()) return 0;
+ll query(const vi& idxs) {
     cout << "? " << sz(idxs);
     for (int i : idxs) cout << " " << i + 1;
     cout << endl;
@@ -84,35 +83,36 @@ ll Q(const vi& idxs) {
     return res;
 }
 
-ll QS(int l, int r) {
+ll range_query(int l, int r) {
     if (l > r) return 0;
     vi idxs;
     for (int i = l; i <= r; ++i) idxs.pb(i);
-    return Q(idxs);
+    return query(idxs);
 }
 
 void solve() {
-    vector<int> w0 = {1, 2, 3, 5, 7, 10, 15, 21, 30, 43, 61, 87, 123};
+    int n;
+    input(n);
+
+    vi w0 = {1, 2, 3, 5, 7, 10, 15, 21, 30, 43, 61, 87, 123};
     int m = sz(w0);
     vector<ll> w1(m);
     rep(i, m) w1[i] = 1LL * w0[i] * (w0[i] + 1) / 2;
 
-    int n; input(n);
     string s(n, '?');
-
     int im = -1;
-    ll fs = QS(0, n - 1);
+    ll fs = range_query(0, n - 1);
     if (fs == 0) {
         im = 0;
     } else {
-        function<pii(int, int)> findp = [&](int l, int r) -> pii {
+        function<pii(int, int)> find_pos = [&](int l, int r) -> pii {
             if (l + 1 == r) return {l, r};
             int mid = (l + r) / 2;
-            if (QS(l, mid) > 0) return findp(l, mid);
-            if (QS(mid + 1, r) > 0) return findp(mid + 1, r);
+            if (range_query(l, mid) > 0) return find_pos(l, mid);
+            if (range_query(mid + 1, r) > 0) return find_pos(mid + 1, r);
             return {mid, mid + 1};
         };
-        im = findp(0, n - 1).se;
+        im = find_pos(0, n - 1).se;
     }
 
     vi idxs(n); iota(all(idxs), 0);
@@ -131,7 +131,7 @@ void solve() {
             qidxs.pb(im);
         }
 
-        ll f = Q(qidxs);
+        ll f = query(qidxs);
         for (int j = bsize - 1; j >= 0; --j) {
             int idx = bidxs[j];
             if (f >= w1[j]) {
@@ -149,7 +149,7 @@ void solve() {
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    int T = 1;
+    int T;
     input(T);
     while (T--) solve();
     return 0;
