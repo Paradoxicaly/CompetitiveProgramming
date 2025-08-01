@@ -1,5 +1,5 @@
 /*
- Tomato_Cultivator
+Tomato_Cultivator
 */
 
 #include <bits/stdc++.h>
@@ -59,8 +59,8 @@ void print(const T& a, const Ts&... b){
 }
 void print() { cout << '\n'; }
 
-ll gcd(ll a, ll b) {
-    return b ? gcd(b, a % b) : a;
+ll gcd(ll a, ll b) { 
+    return b ? gcd(b, a % b) : a; 
 }
 
 ll power(ll a, ll b, ll mod = MOD) {
@@ -73,46 +73,118 @@ ll power(ll a, ll b, ll mod = MOD) {
     return res;
 }
 
-int query(const vi& idx) {
-    cout << "? " << sz(idx);
-    for (int i : idx) cout << " " << i + 1;
-    cout << endl;
-    cout.flush();
-    int res;
-    cin >> res;
-    if (res < 0) exit(0);
-    return res;
-}
-
 void solve() {
     int n;
     input(n);
-    string s(n, '?');
-
-    int ref = 0;
-    s[ref] = '('; 
-    vi left, right;
-    rng(i, 1, n) {
-        int res = query({ref, i});
-        if (res == 1) s[i] = ')'; 
-        else s[i] = '(';
+    
+    cout << "? " << n << " ";
+    rng(i, 1, n + 1) {
+        cout << i << " ";
     }
-    int open = count(all(s), '(');
-    int close = n - open;
-
-    if (open == 0 || close == 0) {
-        for (char& c : s) c = (c == '(' ? ')' : '(');
+    cout << endl;
+    
+    int res;
+    input(res);
+    
+    int open = 0;
+    if (res == 0) {
+        open = n;
+    } else {
+        int l = 0, r = n;
+        while (r - l > 2) {
+            int m = (r + l) / 2;
+            cout << "? " << (m - l) * 2 << " ";
+            rng(i, l + 1, m + 1) {
+                cout << i << " ";
+            }
+            rng(i, l + 1, m + 1) {
+                cout << i << " ";
+            }
+            cout << endl;
+            input(res);
+            
+            if (res == 0) {
+                cout << "? " << (r - m) * 2 << " ";
+                rng(i, m + 1, r + 1) {
+                    cout << i << " ";
+                }
+                rng(i, m + 1, r + 1) {
+                    cout << i << " ";
+                }
+                cout << endl;
+                input(res);
+                
+                if (res == 0) {
+                    l = m - 1;
+                    r = m + 1;
+                } else {
+                    l = m;
+                }
+            } else {
+                r = m;
+            }
+        }
+        
+        cout << "? " << 2 << " " << l + 1 << " " << r << endl;
+        input(res);
+        
+        if (res > 0) {
+            open = l + 1;
+        } else {
+            open = r;
+        }
     }
-
-    cout << "! " << s << endl;
-    cout.flush();
+    
+    string ans = "";
+    
+    vi q1(13, 0), q2(13, 0);
+    q1[0] = q2[0] = 1;
+    int sum1 = 1, sum2 = 3;
+    
+    rng(i, 1, 13) {
+        int val = 0;
+        while (val * (val + 1) / 2 <= sum1) {
+            ++val;
+        }
+        q1[i] = val;
+        q2[i] = val * (val + 1) / 2;
+        sum1 += q2[i];
+        sum2 += q1[i] * 2 + 1;
+    }
+    
+    for (int i = 1; i <= n; i += 13) {
+        cout << "? " << " " << sum2 << " ";
+        rep(j, 13) {
+            rep(g, q1[j]) {
+                cout << open << " " << min(n, i + j) << " ";
+            }
+            cout << open << " ";
+        }
+        cout << endl;
+        input(res);
+        
+        string tmp_ans = "";
+        for (int j = 12; j >= 0; --j) {
+            if (res >= q2[j]) {
+                res -= q2[j];
+                tmp_ans += ')';
+            } else {
+                tmp_ans += '(';
+            }
+        }
+        
+        for (int j = 12; j >= 0; --j) {
+            ans += tmp_ans[j];
+        }
+    }
+    
+    cout << "! " << ans.substr(0, n) << endl;
 }
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-
-    int T;
+    int T = 1;
     input(T);
     while (T--) solve();
     return 0;
