@@ -74,73 +74,51 @@ ll power(ll a, ll b, ll mod = MOD) {
 }
 
 void solve() {
-    int n, m, L;
-    input(n, m, L);
-    vi A(L);
-    rep(i, L) input(A[i]);
-    vector<vi> adj(n+1);
+    int n, m, l;
+    input(n, m, l);
+
+    const int INF = 2e9 + 1;
+    ll S = 0;
+    int min_odd = INF;
+    vi A(l);
+    rep(i, l) {
+        input(A[i]);
+        S += A[i];
+        if (A[i] & 1) min_odd = min(min_odd, A[i]);
+    }
+
+    vector<vi> adj(n);
     rep(i, m) {
         int u, v;
         input(u, v);
+        --u; --v;
         adj[u].pb(v);
         adj[v].pb(u);
     }
 
-    vi dist(n+1, -1);
-    queue<int> q;
-    dist[1] = 0;
-    q.push(1);
+    vector<array<int,2>> dist(n, {INF, INF});
+    queue<pair<int,int>> q;
+    dist[0][0] = 0;
+    q.push({0, 0});
     while (!q.empty()) {
-        int u = q.front(); q.pop();
+        auto [u, p] = q.front(); q.pop();
         for (int v : adj[u]) {
-            if (dist[v] == -1) {
-                dist[v] = dist[u] + 1;
-                q.push(v);
+            if (dist[v][!p] > dist[u][p] + 1) {
+                dist[v][!p] = dist[u][p] + 1;
+                q.push({v, !p});
             }
         }
     }
 
-    bool is_bip = true;
-    rng(u, 1, n+1) {
-        for (int v : adj[u]) {
-            if ((dist[u] & 1) == (dist[v] & 1)) {
-                is_bip = false;
-                break;
-            }
-        }
-        if (!is_bip) break;
+    rep(i, n) {
+        bool ok = false;
+        rep(p, 2) {
+            ll allow = S - ((p == S % 2) ? 0 : min_odd);
+            if (dist[i][p] <= allow) ok = true;
+        } 
+        cout << (ok ? '1' : '0');
     }
-
-    ll S = 0;
-    int smallest_odd = INT_MAX;
-    for (int k : A) {
-        S += k;
-        if (k & 1) smallest_odd = min(smallest_odd, k);
-    }
-
-    ll s_max_even = -1, s_max_odd = -1;
-    if ((S & 1) == 0) {
-        s_max_even = S;
-        if (smallest_odd < INT_MAX) s_max_odd = S - smallest_odd;
-    } else {
-        s_max_odd = S;
-        if (smallest_odd < INT_MAX) s_max_even = S - smallest_odd;
-    }
-
-    string ans;
-    ans.reserve(n);
-    rng(i, 1, n+1) {
-        int d = dist[i];
-        if (d < 0) {
-            ans.pb('0');
-        } else if (!is_bip) {
-            ans.pb((S >= d ? '1' : '0'));
-        } else {
-            ll smax = (d & 1) ? s_max_odd : s_max_even;
-            ans.pb((smax >= d ? '1' : '0'));
-        }
-    }
-    print(ans);
+    cout << "\n";
 }
 
 int main() {
