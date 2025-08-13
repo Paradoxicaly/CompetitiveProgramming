@@ -85,19 +85,45 @@ ll power(ll a, ll b, ll mod = MOD) {
 
 void solve() {
     int n; input(n);
-    vector<unsigned int> a(n), b(n);
-    rep(i,n) cin >> a[i];
-    rep(i,n) cin >> b[i];
-    if (b[n-1] != a[n-1]) { print("NO"); return; }
-    for (int i = n-2; i >= 0; --i) {
-        unsigned int x1 = a[i];
-        unsigned int x2 = a[i] ^ a[i+1];
-        unsigned int x3 = a[i] ^ b[i+1];
-        if (!(b[i] == x1 || b[i] == x2 || b[i] == x3)) { print("NO"); return; }
+    string a, b; cin >> a >> b;
+    vector<int> pA(n+1,0), pB(n+1,0), prefA(n+1,0), prefB(n+1,0);
+    for(int i=1;i<=n;i++){
+        pA[i] = (a[i-1]!=a[0]);
+        pB[i] = (b[i-1]!=b[0]);
+        prefA[i] = prefA[i-1] + pA[i];
+        prefB[i] = prefB[i-1] + pB[i];
     }
-    print("YES");
+    int s = (a[0]!=b[0]);
+    vector<long long> D(n), U(n), V(n);
+    for(int y=1;y<=n;y++){
+        long long u, v;
+        if(s==0){ u = prefB[y]; v = y - prefB[y]; }
+        else { u = y - prefB[y]; v = prefB[y]; }
+        U[y-1]=u; V[y-1]=v; D[y-1]=u - v;
+    }
+    vector<int> ord(n);
+    iota(all(ord), 0);
+    sort(all(ord), [&](int i, int j){ return D[i]<D[j]; });
+    vector<long long> keys(n), preU(n+1,0), preV(n+1,0);
+    for(int i=0;i<n;i++){
+        keys[i]=D[ord[i]];
+        preU[i+1]=preU[i]+U[ord[i]];
+        preV[i+1]=preV[i]+V[ord[i]];
+    }
+    long long totV = preV[n];
+    long long ans = 0;
+    for(int x=1;x<=n;x++){
+        long long A = prefA[x];
+        long long T = x - 2*A;
+        int m = upper_bound(all(keys), T) - keys.begin();
+        long long sumU_le = preU[m];
+        long long sumV_le = preV[m];
+        long long sumV_gt = totV - sumV_le;
+        long long Sx = sumU_le + sumV_gt + 1LL*x*(n - m) + A*(2LL*m - n);
+        ans += Sx;
+    }
+    print(ans);
 }
-
 
 int main() {
     ios::sync_with_stdio(false);
