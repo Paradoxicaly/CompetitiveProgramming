@@ -1,13 +1,12 @@
 /*
-Tomato_Cultivator
+Tomato_Cultivator 
 */
-
 #include <bits/stdc++.h>
 using namespace std;
 
 using ll = long long;
 using pii = pair<int, int>;
-using vi = vector<int>;
+using vi  = vector<int>;
 #define pb push_back
 #define fi first
 #define se second
@@ -20,15 +19,16 @@ const int MOD = 1e9 + 7;
 
 #ifdef Tomato
 template <typename T>
-ostream& operator<<(ostream &o, vector<T> vec) {
-    o << "{"; int f = 0;
-    for (T i : vec) o << (f++ ? " " : "") << i;
-    return o << "}";
+ostream& operator<<(ostream &o, const vector<T> &vec) {
+    o << "{"; for (int i = 0; i < (int)vec.size(); ++i) o << (i ? " " : "") << vec[i]; return o << "}";
 }
-void bug__(int c, auto ...a) {
+template <typename A, typename B>
+ostream& operator<<(ostream &o, const pair<A,B> &p){ return o << "(" << p.first << "," << p.second << ")"; }
+template <typename... A>
+void bug__(int c, A... a) {
     cerr << "\e[1;" << c << "m";
-    (..., (cerr << a << " "));
-    cerr << "\e[0m" << endl;
+    ((cerr << a << ' '), ...);
+    cerr << "\e[0m\n";
 }
 #define bug_(c, x...) bug__(c, __LINE__, "[" + string(#x) + "]", x)
 #define bug(x...) bug_(32, x)
@@ -37,19 +37,12 @@ void bug__(int c, auto ...a) {
 #endif
 
 template<class... T>
-constexpr auto min(T... a){
-    return std::min({a...});
-}
+constexpr auto min(T... a){ return std::min({a...}); }
+template<class... T>
+constexpr auto max(T... a){ return std::max({a...}); }
 
 template<class... T>
-constexpr auto max(T... a){
-    return std::max({a...});
-}
-
-template<class... T>
-void input(T&... a){
-    (cin >> ... >> a);
-}
+void input(T&... a){ (cin >> ... >> a); }
 
 template<class T, class... Ts>
 void print(const T& a, const Ts&... b){
@@ -59,29 +52,33 @@ void print(const T& a, const Ts&... b){
 }
 void print() { cout << '\n'; }
 
-ll gcd(ll a, ll b) { 
-    return b ? gcd(b, a % b) : a; 
-}
+template<class T> bool chmin(T& a, const T& b){ if (b < a){ a = b; return true; } return false; }
+template<class T> bool chmax(T& a, const T& b){ if (a < b){ a = b; return true; } return false; }
 
-ll power(ll a, ll b, ll mod = MOD) {
-    ll res = 1;
-    while (b > 0) {
-        if (b & 1) res = res * a % mod;
-        a = a * a % mod;
+ll gcdll(ll a, ll b){ return b ? gcdll(b, a % b) : a; }
+
+ll power(ll a, ll b, ll mod = MOD){
+    ll res = 1 % mod;
+    while (b > 0){
+        if (b & 1) res = (__int128)res * a % mod;
+        a = (__int128)a * a % mod;
         b >>= 1;
     }
     return res;
 }
 
-void solve() {
+void solve(){
     
 }
 
-int main() {
+int main(){
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    int T = 1;
-    input(T);
-    while (T--) solve();
+#ifdef MULTI_TEST
+    int T; if(!(cin >> T)) return 0;
+    while(T--) solve();
+#else
+    solve();
+#endif
     return 0;
 }

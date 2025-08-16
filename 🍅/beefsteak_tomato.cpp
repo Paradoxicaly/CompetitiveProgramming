@@ -1,16 +1,15 @@
 /*
-Tomato_Cultivator
+Tomato_Cultivator 
 */
-
 #include <bits/stdc++.h>
 using namespace std;
 
 using ll = long long;
+using ull = unsigned long long;
+using ld = long double;
 using pii = pair<int, int>;
-using pll = pair<ll, ll>;
-using vi = vector<int>;
-using vll = vector<ll>;
-using vvi = vector<vi>;
+using pll = pair<long long, long long>;
+using vi  = vector<int>;
 #define pb push_back
 #define fi first
 #define se second
@@ -19,21 +18,20 @@ using vvi = vector<vi>;
 #define rep(i,n) for (int i = 0; i < (n); ++i)
 #define rng(i,a,b) for (int i = (a); i < (b); ++i)
 
-const int INF = 1e9 + 7;
-const ll LINF = 1e18;
 const int MOD = 1e9 + 7;
 
 #ifdef Tomato
 template <typename T>
-ostream& operator<<(ostream &o, vector<T> vec) {
-    o << "{"; int f = 0;
-    for (T i : vec) o << (f++ ? " " : "") << i;
-    return o << "}";
+ostream& operator<<(ostream &o, const vector<T> &vec) {
+    o << "{"; for (int i = 0; i < (int)vec.size(); ++i) o << (i ? " " : "") << vec[i]; return o << "}";
 }
-void bug__(int c, auto ...a) {
+template <typename A, typename B>
+ostream& operator<<(ostream &o, const pair<A,B> &p){ return o << "(" << p.first << "," << p.second << ")"; }
+template <typename... A>
+void bug__(int c, A... a) {
     cerr << "\e[1;" << c << "m";
-    (..., (cerr << a << " "));
-    cerr << "\e[0m" << endl;
+    ((cerr << a << ' '), ...);
+    cerr << "\e[0m\n";
 }
 #define bug_(c, x...) bug__(c, __LINE__, "[" + string(#x) + "]", x)
 #define bug(x...) bug_(32, x)
@@ -42,19 +40,12 @@ void bug__(int c, auto ...a) {
 #endif
 
 template<class... T>
-constexpr auto min(T... a){
-    return std::min({a...});
-}
+constexpr auto min(T... a){ return std::min({a...}); }
+template<class... T>
+constexpr auto max(T... a){ return std::max({a...}); }
 
 template<class... T>
-constexpr auto max(T... a){
-    return std::max({a...});
-}
-
-template<class... T>
-void input(T&... a){
-    (cin >> ... >> a);
-}
+void input(T&... a){ (cin >> ... >> a); }
 
 template<class T, class... Ts>
 void print(const T& a, const Ts&... b){
@@ -62,152 +53,106 @@ void print(const T& a, const Ts&... b){
     (cout << ... << (cout << ' ', b));
     cout << '\n';
 }
-void print() { cout << '\n'; }
+void print(){ cout << '\n'; }
 
-ll gcd(ll a, ll b) { 
-    return b ? gcd(b, a % b) : a; 
-}
+template<class T> bool chmin(T& a, const T& b){ if (b < a){ a = b; return true; } return false; }
+template<class T> bool chmax(T& a, const T& b){ if (a < b){ a = b; return true; } return false; }
 
-ll lcm(ll a, ll b) { 
-    return a / gcd(a, b) * b; 
-}
-
-ll power(ll a, ll b, ll mod = MOD) {
-    ll res = 1;
-    while (b > 0) {
-        if (b & 1) res = res * a % mod;
-        a = a * a % mod;
+ll gcdll(ll a, ll b){ return b ? gcdll(b, a % b) : a; }
+ll power(ll a, ll b, ll mod = MOD){
+    ll res = 1 % mod;
+    while (b){
+        if (b & 1) res = (__int128)res * a % mod;
+        a = (__int128)a * a % mod;
         b >>= 1;
     }
     return res;
 }
 
-ll modinv(ll a, ll mod = MOD) {
-    return power(a, mod - 2, mod);
-}
+mt19937 rng32((uint32_t)chrono::steady_clock::now().time_since_epoch().count());
+template<class T> T rnd(T l, T r){ return uniform_int_distribution<T>(l, r)(rng32); }
 
-vector<ll> fact, inv_fact;
-void precompute_factorials(int n) {
-    fact.resize(n + 1);
-    inv_fact.resize(n + 1);
-    fact[0] = 1;
-    rng(i, 1, n + 1) fact[i] = fact[i-1] * i % MOD;
-    inv_fact[n] = modinv(fact[n]);
-    for (int i = n - 1; i >= 0; i--) inv_fact[i] = inv_fact[i+1] * (i+1) % MOD;
-}
+template<class F> struct y_combinator{
+    F f; template<class... A> decltype(auto) operator()(A&&... a) const { return f(*this, std::forward<A>(a)...); }
+};
+template<class F> y_combinator<F> yfix(F f){ return {f}; }
 
-ll nCr(int n, int r) {
-    if (r < 0 || r > n) return 0;
-    return fact[n] * inv_fact[r] % MOD * inv_fact[n-r] % MOD;
-}
+struct DSU{
+    vector<int> p, r;
+    DSU(int n=0){ init(n); }
+    void init(int n){ p.resize(n); r.assign(n,0); iota(all(p),0); }
+    int find(int x){ while(x!=p[x]) x=p[x]=p[p[x]]; return x; }
+    bool unite(int a,int b){
+        a=find(a); b=find(b); if(a==b) return false;
+        if(r[a]<r[b]) swap(a,b); p[b]=a; if(r[a]==r[b]) ++r[a]; return true;
+    }
+};
 
 template<class T>
-struct FenwickTree {
-    vector<T> tree;
-    int n;
-    
-    FenwickTree(int n) : n(n) {
-        tree.assign(n + 1, T{});
-    }
-    
-    void update(int i, T delta) {
-        for (++i; i <= n; i += i & -i)
-            tree[i] += delta;
-    }
-    
-    T query(int i) {
-        T sum{};
-        for (++i; i > 0; i -= i & -i)
-            sum += tree[i];
-        return sum;
-    }
-    
-    T query(int l, int r) {
-        return query(r) - query(l - 1);
+struct Fenwick{
+    int n; vector<T> f;
+    Fenwick(int n=0){ init(n); }
+    void init(int n_){ n=n_; f.assign(n+1,T()); }
+    void add(int i, T v){ for(; i<=n; i+=i&-i) f[i]+=v; }
+    T sumPrefix(int i) const { T r=T(); for(; i>0; i-=i&-i) r+=f[i]; return r; }
+    T sumRange(int l,int r) const { return sumPrefix(r)-sumPrefix(l-1); }
+    int kth(long long k){ int i=0; long long s=0; int p=1; while((p<<1)<=n) p<<=1; for(; p; p>>=1){ if(i+p<=n && s+f[i+p]<k){ i+=p; s+=f[i]; } } return i+1; }
+};
+
+template<class T>
+struct SegTree{
+    int n; vector<T> st;
+    SegTree(int n=0){ init(n); }
+    void init(int n_){ n=1; while(n<n_) n<<=1; st.assign(2*n, T()); }
+    void setval(int p, T v){ for(st[p+=n]=v, p>>=1; p; p>>=1) st[p]=st[p<<1]+st[p<<1|1]; }
+    void add(int p, T v){ for(p+=n, st[p]+=v, p>>=1; p; p>>=1) st[p]=st[p<<1]+st[p<<1|1]; }
+    T query(int l,int r){ T L=T(), R=T(); l+=n; r+=n; while(l<r){ if(l&1) L=L+st[l++]; if(r&1) R=st[--r]+R; l>>=1; r>>=1; } return L+R; }
+};
+
+struct mint{
+    static const int MODV = 998244353; //1e9+7
+    int v;
+    mint(): v(0) {}
+    mint(long long x){ x%=MODV; if(x<0) x+=MODV; v=(int)x; }
+    mint& operator+=(const mint& o){ v+=o.v; if(v>=MODV) v-=MODV; return *this; }
+    mint& operator-=(const mint& o){ v-=o.v; if(v<0) v+=MODV; return *this; }
+    mint& operator*=(const mint& o){ v=(int)((long long)v*o.v%MODV); return *this; }
+    friend mint operator+(mint a, const mint& b){ return a+=b; }
+    friend mint operator-(mint a, const mint& b){ return a-=b; }
+    friend mint operator*(mint a, const mint& b){ return a*=b; }
+    static mint pow(mint a, long long e){ mint r=1; for(; e; e>>=1, a*=a) if(e&1) r*=a; return r; }
+    static mint inv(mint a){ return pow(a, MODV-2); }
+    mint& operator/=(const mint& o){ return (*this) *= inv(o); }
+    friend mint operator/(mint a, const mint& b){ return a/=b; }
+};
+
+template<class T>
+struct Compressor{
+    vector<T> v;
+    void add(const T& x){ v.pb(x); }
+    void build(){ sort(all(v)); v.erase(unique(all(v)), v.end()); }
+    int get(const T& x) const { return (int)(lower_bound(all(v), x)-v.begin()); }
+    int size() const { return (int)v.size(); }
+};
+
+struct PairHash{
+    size_t operator()(const pii& p) const noexcept {
+        return (uint64_t(p.first)<<32) ^ uint64_t(p.second);
     }
 };
 
-struct DSU {
-    vi parent, rank;
-    
-    DSU(int n) : parent(n), rank(n, 0) {
-        rep(i, n) parent[i] = i;
-    }
-    
-    int find(int x) {
-        return parent[x] == x ? x : parent[x] = find(parent[x]);
-    }
-    
-    bool unite(int x, int y) {
-        x = find(x), y = find(y);
-        if (x == y) return false;
-        if (rank[x] < rank[y]) swap(x, y);
-        parent[y] = x;
-        if (rank[x] == rank[y]) rank[x]++;
-        return true;
-    }
-    
-    bool same(int x, int y) {
-        return find(x) == find(y);
-    }
-};
-
-vi adj[200005];
-vi visited, parent, depth;
-
-void dfs(int v, int par = -1) {
-    visited[v] = 1;
-    parent[v] = par;
-    for (int u : adj[v]) {
-        if (u != par && !visited[u]) {
-            depth[u] = depth[v] + 1;
-            dfs(u, v);
-        }
-    }
-}
-
-vi bfs(int start, int n) {
-    queue<int> q;
-    vi dist(n, -1);
-    dist[start] = 0;
-    q.push(start);
-    
-    while (!q.empty()) {
-        int v = q.front();
-        q.pop();
-        for (int u : adj[v]) {
-            if (dist[u] == -1) {
-                dist[u] = dist[v] + 1;
-                q.push(u);
-            }
-        }
-    }
-    return dist;
-}
-
-struct Point {
-    ll x, y;
-    Point(ll x = 0, ll y = 0) : x(x), y(y) {}
-    Point operator+(const Point& p) const { return {x + p.x, y + p.y}; }
-    Point operator-(const Point& p) const { return {x - p.x, y - p.y}; }
-    ll operator*(const Point& p) const { return x * p.x + y * p.y; }
-    ll operator^(const Point& p) const { return x * p.y - y * p.x; }
-    ll norm2() const { return x * x + y * y; }
-};
-
-ll orientation(Point a, Point b, Point c) {
-    return (b - a) ^ (c - a);
-}
-
-void solve() {
+void solve(){
     
 }
 
-int main() {
+int main(){
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    int T = 1;
-    input(T);
-    while (T--) solve();
+#ifdef MULTI_TEST
+    int T; if(!(cin >> T)) return 0;
+    while(T--) solve();
+#else
+    solve();
+#endif
     return 0;
 }
