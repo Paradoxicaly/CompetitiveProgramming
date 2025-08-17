@@ -1,6 +1,3 @@
-/*
-Tomato_Cultivator 
-*/
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -43,10 +40,8 @@ template<class... T>
 constexpr auto min(T... a){ return std::min({a...}); }
 template<class... T>
 constexpr auto max(T... a){ return std::max({a...}); }
-
 template<class... T>
 void input(T&... a){ (cin >> ... >> a); }
-
 template<class T, class... Ts>
 void print(const T& a, const Ts&... b){
     cout << a;
@@ -54,23 +49,31 @@ void print(const T& a, const Ts&... b){
     cout << '\n';
 }
 void print(){ cout << '\n'; }
-
 template<class T> bool chmin(T& a, const T& b){ if (b < a){ a = b; return true; } return false; }
 template<class T> bool chmax(T& a, const T& b){ if (a < b){ a = b; return true; } return false; }
-
 ll gcdll(ll a, ll b){ return b ? gcdll(b, a % b) : a; }
-ll power(ll a, ll b, ll mod = MOD){
+
+ll mod_pow(ll a, ll b, ll mod = MOD){
+    a %= mod;
     ll res = 1 % mod;
-    while (b){
-        if (b & 1) res = (__int128)res * a % mod;
-        a = (__int128)a * a % mod;
+    while (b > 0){
+        if (b & 1) res = (res * a) % mod;
+        a = (a * a) % mod;
         b >>= 1;
     }
     return res;
 }
-
-mt19937 rng32((uint32_t)chrono::steady_clock::now().time_since_epoch().count());
-template<class T> T rnd(T l, T r){ return uniform_int_distribution<T>(l, r)(rng32); }
+ll extgcd(ll a, ll b, ll& x, ll& y){
+    if(b==0){ x=1; y=0; return a; }
+    ll x1,y1; ll g=extgcd(b,a%b,x1,y1);
+    x=y1; y=x1-(a/b)*y1; return g;
+}
+ll mod_inv(ll a, ll mod = MOD){
+    a%=mod; if(a<0) a+=mod;
+    ll x,y; ll g=extgcd(a,mod,x,y);
+    if(g!=1) return -1;
+    x%=mod; if(x<0) x+=mod; return x;
+}
 
 template<class F> struct y_combinator{
     F f; template<class... A> decltype(auto) operator()(A&&... a) const { return f(*this, std::forward<A>(a)...); }
@@ -110,7 +113,7 @@ struct SegTree{
 };
 
 struct mint{
-    static const int MODV = 998244353; //1e9+7
+    static const int MODV = 998244353;
     int v;
     mint(): v(0) {}
     mint(long long x){ x%=MODV; if(x<0) x+=MODV; v=(int)x; }
@@ -142,17 +145,12 @@ struct PairHash{
 };
 
 void solve(){
-    
 }
 
 int main(){
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-#ifdef MULTI_TEST
     int T; if(!(cin >> T)) return 0;
     while(T--) solve();
-#else
-    solve();
-#endif
     return 0;
 }
