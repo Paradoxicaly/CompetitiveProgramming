@@ -62,58 +62,44 @@ ll power(ll a, ll b, ll m = MOD){
    return res;
 }
 
-vector<long long> pw;
-
-long long g(ll x){
-    if(x<=0) return 0;
-    long long res=0;
-    for(int d=1; d<=18; ++d){
-        long long L=pw[d-1], R=min(x, pw[d]-1);
-        if(R<L) break;
-        res += (R-L+1)*1LL*d;
-    }
-    return res;
-}
-
-long long f(ll x){
-    long long ans=0;
-    long long p=1;
-    while(p<=x){
-        long long higher = x/(p*10);
-        long long cur = (x/p)%10;
-        long long lower = x%p;
-        ans += higher*45LL*p;
-        ans += (cur*(cur-1)/2)*1LL*p;
-        ans += cur*(lower+1);
-        p*=10;
-    }
-    return ans;
-}
-
 void solve(){
-    ll k; input(k);
-    ll hi=1;
-    while(g(hi)<k) hi*=10;
-    ll lo=0;
-    while(lo<hi){
-        ll mid=(lo+hi+1)>>1;
-        if(g(mid)<=k) lo=mid; else hi=mid-1;
+    int n,m,q; input(n,m,q);
+    vector<ll>a(n+1),b(m+1);
+    for(int i=1;i<=n;i++) cin>>a[i];
+    for(int j=1;j<=m;j++) cin>>b[j];
+    sort(a.begin()+1,a.end(),greater<ll>());
+    sort(b.begin()+1,b.end(),greater<ll>());
+    vector<ll>A(n+1),B(m+1);
+    for(int i=1;i<=n;i++) A[i]=A[i-1]+a[i];
+    for(int j=1;j<=m;j++) B[j]=B[j-1]+b[j];
+
+    auto geta=[&](int i)->ll{ return (1<=i && i<=n)?a[i]:0LL; };
+    auto getb=[&](int j)->ll{ return (1<=j && j<=m)?b[j]:0LL; };
+
+    while(q--){
+        int x,y,z; input(x,y,z);
+        int L=max(0,z-y), R=min(z,x);
+        int lo=0,hi=z;
+        auto ok=[&](int t)->bool{
+            if(t==0) return true;
+            return geta(t) >= getb(z - t + 1);
+        };
+        while(lo<hi){
+            int mid=(lo+hi+1)>>1;
+            if(ok(mid)) lo=mid;
+            else hi=mid-1;
+        }
+        int t0=lo;
+        int t=t0;
+        if(t<L) t=L;
+        if(t>R) t=R;
+        ll ans=A[min(t,n)] + B[min(z-t,m)];
+        print(ans);
     }
-    ll N=lo;
-    ll rem=k-g(N);
-    long long ans=f(N);
-    if(rem){
-        string s=to_string(N+1);
-        for(int i=0;i<rem;i++) ans+=s[i]-'0';
-    }
-    print(ans);
 }
 int main(){
    ios::sync_with_stdio(false);
    cin.tie(nullptr);
-
-   pw.assign(19,1);
-   for(int i=1;i<=18;i++) pw[i]=pw[i-1]*10LL;
 
    int T=1;
    if(cin>>T){
