@@ -63,7 +63,7 @@ ll power(ll a, ll b, ll m = MOD){
 }
 
 void solve(){
-    int n,m,q; input(n,m,q);
+    int n,m; input(n,m);
     vector<vector<pair<int,int>>> g(n+1);
     vector<pair<int,int>> edges(m+1);
     for(int i=1;i<=m;i++){
@@ -72,84 +72,103 @@ void solve(){
         g[u].push_back({v,i});
         g[v].push_back({u,i});
     }
-    vector<int> c(q);
-    rep(i,q) cin>>c[i];
+    int q; input(q);
+    vector<int> c(q); rep(i,q) cin>>c[i];
 
-    auto bfs=[&](int s){
-        const int INF=1e9;
-        vector<int> d(n+1,INF);
-        deque<int> dq;
-        d[s]=0; dq.push_back(s);
-        while(!dq.empty()){
-            int v=dq.front(); dq.pop_front();
+    vector<int> tin(n+1,-1), low(n+1,-1);
+    vector<char> isB(m+1,0);
+    int timer=0;
+    function<void(int,int)> dfs=[&](int v,int pe){
+        tin[v]=low[v]=++timer;
+        for(auto [to,id]: g[v]){
+            if(id==pe) continue;
+            if(tin[to]==-1){
+                dfs(to,id);
+                low[v]=min(low[v],low[to]);
+                if(low[to]>tin[v]) isB[id]=1;
+            }else{
+                low[v]=min(low[v],tin[to]);
+            }
+        }
+    };
+    dfs(1,-1);
+
+    vector<int> comp(n+1,-1);
+    int cid=0;
+    function<void(int)> paint=[&](int s){
+        stack<int> st; st.push(s); comp[s]=cid;
+        while(!st.empty()){
+            int v=st.top(); st.pop();
             for(auto [to,id]: g[v]){
-                if(d[to]>d[v]+1){
-                    d[to]=d[v]+1;
-                    dq.push_back(to);
+                if(isB[id]) continue;
+                if(comp[to]==-1){
+                    comp[to]=cid;
+                    st.push(to);
                 }
             }
         }
-        return d;
     };
+    for(int v=1;v<=n;v++) if(comp[v]==-1){ cid++; paint(v); }
 
-    vector<int> ds=bfs(1), dt=bfs(n);
-    int L=ds[n];
-
-    vector<int> cnt(L+1,0);
-    vector<char> on(n+1,0);
-    for(int v=1;v<=n;v++){
-        if(ds[v]+dt[v]==L){
-            on[v]=1;
-            cnt[ds[v]]++;
-        }
-    }
-
-    vector<char> mand(m+1,0);
-    for(int i=1;i<=m;i++){
-        auto [u,v]=edges[i];
-        if(!on[u]||!on[v]) continue;
-        if(abs(ds[u]-ds[v])!=1) continue;
-        int a=u,b=v;
-        if(ds[a]>ds[b]) swap(a,b);
-        if(cnt[ds[a]]==1 && cnt[ds[b]]==1) mand[i]=1;
-    }
-
-    vector<int> bestLab(n+1, -1), dist(n+1, INT_MAX);
-    if(accumulate(all(mand),0)==0){
+    int cS=comp[1], cT=comp[n];
+    if(cS==cT){
         rep(i,q) print(-1);
         return;
     }
 
-    vector<int> minEdgeAt(n+1, INT_MAX);
-    for(int i=1;i<=m;i++) if(mand[i]){
+    vector<vector<pair<int,int>>> tree(cid+1);
+    for(int i=1;i<=m;i++) if(isB[i]){
         auto [u,v]=edges[i];
-        minEdgeAt[u]=std::min(minEdgeAt[u], i);
-        minEdgeAt[v]=std::min(minEdgeAt[v], i);
+        int a=comp[u], b=comp[v];
+        tree[a].push_back({b,i});
+        tree[b].push_back({a,i});
     }
 
-    queue<int> qu;
-    for(int v=1;v<=n;v++){
-        if(minEdgeAt[v]!=INT_MAX){
-            dist[v]=0;
-            bestLab[v]=minEdgeAt[v];
-            qu.push(v);
-        }
-    }
+    vector<char> need(m+1,0);
+    vector<int> parC(cid+1,-1), parE(cid+1,-1);
+    queue<int> qu; qu.push(cS); parC[cS]=cS;
     while(!qu.empty()){
         int v=qu.front(); qu.pop();
-        for(auto [to,id]: g[v]){
-            int nd=dist[v]+1;
-            if(nd<dist[to] || (nd==dist[to] && bestLab[v]<bestLab[to])){
-                dist[to]=nd;
-                bestLab[to]=bestLab[v];
+        if(v==cT) break;
+        for(auto [to,id]: tree[v]){
+            if(parC[to]==-1){
+                parC[to]=v;
+                parE[to]=id;
                 qu.push(to);
             }
         }
     }
+    int cur=cT;
+    while(cur!=cS){
+        need[parE[cur]]=1;
+        cur=parC[cur];
+    }
 
+    vector<int> label(n+1,-1), dist(n+1,INT_MAX), best(n+1,INT_MAX);
+    queue<int> qv;
+    for(int i=1;i<=m;i++) if(need[i]){
+        auto [u,v]=edges[i];
+        if(best[u]>i){ best[u]=i; if(dist[u]==INT_MAX){dist[u]=0; label[u]=i; qv.push(u);} else if(label[u]>i) label[u]=i; }
+        if(best[v]>i){ best[v]=i; if(dist[v]==INT_MAX){dist[v]=0; label[v]=i; qv.push(v);} else if(label[v]>i) label[v]=i; }
+    }
+    if(qv.empty()){
+        rep(i,q) print(-1);
+        return;
+    }
+    while(!qv.empty()){
+        int v=qv.front(); qv.pop();
+        for(auto [to,id]: g[v]){
+            int nd=dist[v]+1;
+            if(nd<dist[to] || (nd==dist[to] && label[v]<label[to])){
+                dist[to]=nd;
+                label[to]=label[v];
+                qv.push(to);
+            }
+        }
+    }
     rep(i,q){
         int v=c[i];
-        print(bestLab[v]==-1?-1:bestLab[v]);
+        print(label[v]==-1?-1:label[v]);
     }
 }
 int main(){
