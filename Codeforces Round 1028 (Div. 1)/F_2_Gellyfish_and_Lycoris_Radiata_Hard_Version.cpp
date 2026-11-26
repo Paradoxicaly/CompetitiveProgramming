@@ -1,287 +1,147 @@
 /*
 Tomato_Cultivator
 */
-
 #include <bits/stdc++.h>
 using namespace std;
-
 using ll = long long;
-using pii = pair<int, int>;
-using vi = vector<int>;
-
+using pii = pair<int,int>;
+using vi  = vector<int>;
 #define pb push_back
 #define fi first
 #define se second
 #define all(x) begin(x), end(x)
 #define sz(x) ((int)(x).size())
-#define rep(i,n) for (int i = 0; i < (n); ++i)
-#define rng(i,a,b) for (int i = (a); i < (b); ++i)
-
-const int MOD = 1e9 + 7;
-
+#define rep(i,n) for(int i=0;i<(n);++i)
+#define rng(i,a,b) for(int i=(a);i<(b);++i)
+const int MOD = 1e9+7;
 #ifdef Tomato
-template <typename T>
-ostream& operator<<(ostream &o, vector<T> vec) {
-    o << "{"; int f = 0;
-    for (T i : vec) o << (f++ ? " " : "") << i;
-    return o << "}";
+template<class T>
+ostream& operator<<(ostream &o, const vector<T> &v){
+   o<<"{"; for(int i=0;i<sz(v);i++) o<<(i?" ":"")<<v[i]; return o<<"}";
 }
-void bug__(int c, auto ...a) {
-    cerr << "\e[1;" << c << "m";
-    (..., (cerr << a << " "));
-    cerr << "\e[0m" << endl;
+template<class A,class B>
+ostream& operator<<(ostream &o,const pair<A,B>&p){ return o<<"("<<p.fi<<","<<p.se<<")"; }
+template<class... A>
+void bug__(int c,A... a){
+   cerr<<"\e[1;"<<c<<"m"; ((cerr<<a<<' '),...); cerr<<"\e[0m\n";
 }
-#define bug_(c, x...) bug__(c, __LINE__, "[" + string(#x) + "]", x)
-#define bug(x...) bug_(32, x)
+#define bug_(c,x...) bug__(c,__LINE__,"[" + string(#x) + "]",x)
+#define bug(x...) bug_(32,x)
 #else
-#define bug(x...) void(0)
+#define bug(x...) ((void)0)
 #endif
-
 template<class... T>
 constexpr auto min(T... a){ return std::min({a...}); }
-
 template<class... T>
 constexpr auto max(T... a){ return std::max({a...}); }
-
-template<class... T>
-void input(T&... a){ (cin >> ... >> a); }
-
-template<class T, class... Ts>
-void print(const T& a, const Ts&... b){
-    cout << a;
-    (cout << ... << (cout << ' ', b));
-    cout << '\n';
+template<class... T> void input(T&... a){ (cin>>...>>a); }
+template<class T,class... Ts>
+void print(const T& a,const Ts&... b){
+   cout<<a; (cout<<...<<(cout<<' ',b)); cout<<'\n';
 }
-void print() { cout << '\n'; }
-
-ll gcd(ll a, ll b) { return b ? gcd(b, a % b) : a; }
-
-ll power(ll a, ll b, ll mod = MOD) {
-    ll res = 1;
-    while (b > 0) {
-        if (b & 1) res = res * a % mod;
-        a = a * a % mod;
-        b >>= 1;
-    }
-    return res;
+void print(){ cout<<'\n'; }
+template<class T> bool chmin(T& a,const T& b){ if(b<a){a=b; return true;} return false; }
+template<class T> bool chmax(T& a,const T& b){ if(a<b){a=b; return true;} return false; }
+ll gcdll(ll a,ll b){ return b?gcdll(b,a%b):a; }
+ll pw(ll a,ll b,ll m=MOD){
+   ll r=1%m; a%=m;
+   while(b>0){ if(b&1) r=r*a%m; a=a*a%m; b>>=1; }
+   return r;
 }
-
-constexpr int N = 3e5 + 10;
-constexpr int S = 1.1e7, SS = 2 * S;
-
-int n, q, cnt;
-int next_ptr[SS], val_ptr[SS];
-
-struct Queue {
-    int head = 0, tail = 0;
-
-    void push(int x) {
-        if (head) {
-            next_ptr[tail] = ++cnt;
-            val_ptr[cnt] = x;
-            tail = cnt;
-        } else {
-            head = tail = ++cnt;
-            val_ptr[cnt] = x;
-        }
-    }
-
-    void pop() { head = next_ptr[head]; }
-    int front() { return val_ptr[head]; }
-    bool empty() const { return head == 0; }
-    bool single() const { return head == tail; }
-    void clear() { head = tail = 0; }
-};
-
-struct Node {
-    int ls = 0, rs = 0;
-    Queue fa;
-    int val = 0, exit = 0;
-    int size = 0, rev = 0;
-} a[S];
-
-int tot = 0, id[N];
-
-int newNode() {
-    int u = ++tot;
-    a[u].exit = 2;
-    return u;
+mt19937 rnd(20251126);
+vi lc,rc,sz_,pr,cv,own;
+vector<char> rv,cl,alive;
+vi tl,ps,val,nx;
+int nobj(){ tl.pb(-1); ps.pb(-1); return sz(tl)-1; }
+void app(int o,int v){
+   val.pb(v); nx.pb(-1);
+   int e=sz(val)-1;
+   if(tl[o]!=-1) nx[tl[o]]=e;
+   tl[o]=e;
+   if(ps[o]==-1) ps[o]=e;
 }
-
-int newLeaf() {
-    int u = newNode();
-    a[u].size = 1;
-    return u;
+void addp(int c,int v){
+   if(!cv[c]){ cv[c]=v; cl[c]=0; }
+   else if(!cl[c]){ int o=nobj(); app(o,cv[c]); app(o,v); cv[c]=o; cl[c]=1; }
+   else app(cv[c],v);
 }
-
-void pushup(int u) {
-    a[u].size = a[a[u].ls].size + a[a[u].rs].size;
+int fst(int o);
+int fv(int v){ return v<0?(alive[-v]?-v:0):fst(v); }
+int fst(int o){
+   while(ps[o]!=-1){
+       int r=fv(val[ps[o]]);
+       if(r) return r;
+       ps[o]=nx[ps[o]];
+   }
+   return 0;
 }
-
-void setRev(int u) {
-    if (!u) return;
-    a[u].rev ^= 1;
-    swap(a[u].ls, a[u].rs);
+void upd(int u){ sz_[u]=1+sz_[lc[u]]+sz_[rc[u]]; }
+void push(int u){
+   if(rv[u]){
+       swap(lc[u],rc[u]);
+       if(lc[u]) rv[lc[u]]^=1;
+       if(rc[u]) rv[rc[u]]^=1;
+       rv[u]=0;
+   }
+   if(cv[u]){
+       int v=cv[u];
+       app(own[u],v);
+       if(lc[u]) addp(lc[u],v);
+       if(rc[u]) addp(rc[u],v);
+       cv[u]=0;
+   }
 }
-
-void setTag(int u, int v) {
-    a[u].fa.push(v);
+void split(int u,int k,int&a,int&b){
+   if(!u){ a=b=0; return; }
+   push(u);
+   if(sz_[lc[u]]<k){ split(rc[u],k-sz_[lc[u]]-1,rc[u],b); a=u; }
+   else{ split(lc[u],k,a,lc[u]); b=u; }
+   upd(u);
 }
-
-void pushdown(int u) {
-    if (a[u].rev) {
-        setRev(a[u].ls);
-        setRev(a[u].rs);
-        a[u].rev = 0;
-    }
+int mrg(int a,int b){
+   if(!a||!b) return a|b;
+   if(pr[a]>pr[b]){ push(a); rc[a]=mrg(rc[a],b); upd(a); return a; }
+   push(b); lc[b]=mrg(a,lc[b]); upd(b); return b;
 }
-
-int join(int x, int y) {
-    int u = newNode();
-    a[u].ls = x;
-    a[u].rs = y;
-    setTag(x, u);
-    setTag(y, u);
-    pushup(u);
-    return u;
+void solve(){
+   int n,q; input(n,q);
+   lc.assign(n+1,0); rc=lc; sz_=lc; pr=lc; cv=lc; own=lc;
+   rv.assign(n+1,0); cl=rv; alive.assign(q+1,1);
+   tl.reserve(1<<24); ps.reserve(1<<24); val.reserve(1<<25); nx.reserve(1<<25);
+   nobj();
+   int root=0;
+   rng(i,1,n+1){ pr[i]=rnd(); sz_[i]=1; own[i]=nobj(); root=mrg(root,i); }
+   int ans=0;
+   string out;
+   rng(i,1,q+1){
+       int a,b,c; cin>>a>>b>>c;
+       if(a==3){
+           int x=(b+ans-1)%q+1;
+           if(x<i) alive[x]=0;
+       }else{
+           int r=(b+ans-1)%n+1,L,R;
+           split(root,r,L,R);
+           if(a==1) addp(L,-i);
+           else rv[L]^=1;
+           root=mrg(L,R);
+       }
+       int p=(c+ans-1)%n+1,u=root;
+       while(true){
+           push(u);
+           int ls=sz_[lc[u]];
+           if(p<=ls) u=lc[u];
+           else if(p==ls+1) break;
+           else{ p-=ls+1; u=rc[u]; }
+       }
+       ans=fst(own[u]);
+       out+=to_string(ans);
+       out+='\n';
+   }
+   cout<<out;
 }
-
-pii cut(int x) {
-    pushdown(x);
-    a[x].exit = 1;
-    return {a[x].ls, a[x].rs};
-}
-
-int get_val(int u) {
-    if (a[u].exit == 0) return 0;
-    if (a[u].val != 0) return a[u].val;
-    if (a[u].fa.empty()) return 0;
-
-    while (true) {
-        int res = get_val(a[u].fa.front());
-        if (res) return res;
-        if (a[u].fa.single()) break;
-        a[u].fa.pop();
-    }
-
-    if (a[u].exit == 1) {
-        a[u].exit = 0;
-        a[u].fa.pop();
-        a[u].fa.clear();
-    }
-
-    return 0;
-}
-
-int newTag(int x) {
-    int u = ++tot;
-    a[u].val = x;
-    a[u].exit = 1;
-    return u;
-}
-
-constexpr double ALPHA = 0.292;
-
-bool tooHeavy(int sx, int sy) {
-    return sy < ALPHA * (sx + sy);
-}
-
-int merge(int x, int y) {
-    if (!x || !y) return x + y;
-
-    if (tooHeavy(a[x].size, a[y].size)) {
-        auto [u, v] = cut(x);
-        if (tooHeavy(a[v].size + a[y].size, a[u].size)) {
-            auto [z, w] = cut(v);
-            return merge(merge(u, z), merge(w, y));
-        } else {
-            return merge(u, merge(v, y));
-        }
-    } else if (tooHeavy(a[y].size, a[x].size)) {
-        auto [u, v] = cut(y);
-        if (tooHeavy(a[u].size + a[x].size, a[v].size)) {
-            auto [z, w] = cut(u);
-            return merge(merge(x, z), merge(w, v));
-        } else {
-            return merge(merge(x, u), v);
-        }
-    }
-
-    return join(x, y);
-}
-
-pii split(int x, int k) {
-    if (!x) return {0, 0};
-    if (!k) return {0, x};
-    if (k == a[x].size) return {x, 0};
-
-    auto [u, v] = cut(x);
-    if (k <= a[u].size) {
-        auto [w, z] = split(u, k);
-        return {w, merge(z, v)};
-    } else {
-        auto [w, z] = split(v, k - a[u].size);
-        return {merge(u, w), z};
-    }
-}
-
-int find(int u, int k) {
-    if (a[u].size == 1) return u;
-    pushdown(u);
-    if (k <= a[a[u].ls].size) return find(a[u].ls, k);
-    return find(a[u].rs, k - a[a[u].ls].size);
-}
-
-int build(int len) {
-    if (len == 1) return newLeaf();
-    int x = build(len / 2);
-    int y = build(len - len / 2);
-    return join(x, y);
-}
-
-void solve() {
-    input(n, q);
-    int root = build(n);
-    int last = 0;
-
-    rep(i, q) {
-        int op;
-        input(op);
-
-        if (op == 1) {
-            int p;
-            input(p);
-            p = (p + last - 1) % n + 1;
-            auto [A, B] = split(root, p);
-            setTag(A, id[i + 1] = newTag(i + 1));
-            root = merge(A, B);
-        } else if (op == 2) {
-            int p;
-            input(p);
-            p = (p + last - 1) % n + 1;
-            auto [A, B] = split(root, p);
-            setRev(A);
-            root = merge(A, B);
-        } else if (op == 3) {
-            int x;
-            input(x);
-            x = (x + last - 1) % q + 1;
-            a[id[x]].exit = 0;
-        }
-
-        int pos;
-        input(pos);
-        pos = (pos + last - 1) % n + 1;
-        int u = find(root, pos);
-        print(last = get_val(u));
-    }
-}
-
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    int T = 1;
-    input(T);
-    while (T--) solve();
-    return 0;
+int main(){
+   ios::sync_with_stdio(false);
+   cin.tie(nullptr);
+   solve();
+   return 0;
 }
